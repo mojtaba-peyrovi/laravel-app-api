@@ -48,7 +48,7 @@ class User extends Authenticatable
     {
         return $this->admin == User::ADMIN_USER;
     }
-    public function generateVerifiedCode()
+    public function generateVerificationCode()
     {
         return str_random(40);
     }

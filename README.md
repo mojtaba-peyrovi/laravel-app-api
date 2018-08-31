@@ -67,3 +67,20 @@ factory(Product::class, $usproductsQuantity)->create()->each(
 in order to get around this error we need to manually specify in Seller model that the table name is user. like this: protected $table = 'users';
 we also do this for buyers.
 - we can run the migration and seeder two ways : 1) php artisan migrate:refresh    and then     php artisan db:seed     or 2) php artisan migrate:refresh  --seed
+
+
+## part 11:
+---
+- when we want to make index method in controller for api instead of returning view, we should return a response as json. like this:
+public function index()
+    {
+        $users = User::all();
+        return response()->json(['data'=> $user], 200);
+    }
+200 is the response code saying everything is working as expected.
+we could also say return $users but it would return the collection without the structure.
+
+## part 12,13:
+ ---
+a useful method:  isDirty(array|string|null $attributes = null)
+Determines if the model or given attribute(s) have been modified.
