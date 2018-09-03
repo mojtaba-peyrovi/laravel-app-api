@@ -84,3 +84,123 @@ we could also say return $users but it would return the collection without the s
  ---
 a useful method:  isDirty(array|string|null $attributes = null)
 Determines if the model or given attribute(s) have been modified.
+## part 14:
+
+Accessors and mutators allow you to format Eloquent attribute values when you retrieve or set them on model instances.
+mutator can modify the value after retrieving date from database but accessors just return a modified data.
+how to name mtator functions?  
+```
+set+<field_name>+Attribute()
+```
+
+here is an example of a mutator:
+```
+public function setNameAttribute($name)
+    {
+        $this->attributes['name'] = $name;
+    }
+```    
+
+for accessors we should name it this way:   
+```
+get + <field_name> + Attribute()
+```
+example for accessor:
+```
+public function getNameAttribute($name)
+    {
+        return ucword($name);
+    }
+```    
+in this part we made simple mutators to change name and email values to lowercase. with a new seeding we can see the results.
+
+- now we are going to make a base controller for api and  all other controllers we make are going to extend from that not from controller.php
+- then we make a folder called traits under app folder and inside traits we make a new file called: ApiResponse.php
+
+train definition from medium.com:
+
+*One of the problems of PHP as a programming language is the fact that you can only have single inheritance. This means a class can only inherit from one other class. For example, it might be desirable to inherit methods from a couple of different classes in order to prevent code duplication. In PHP 5.4 a new feature of the language was added known as Traits and are used extensively in the Laravel Framework.*
+([full article](https://medium.com/@kshitij206/traits-in-laravel-5db8beffbcc3))
+- inside ApiResponse trait we add some methods for managing error and success responses, like this:
+```
+<?php
+
+namespace App\Traits;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+
+trait ApiResponser
+{
+    private function successResponse($data, $code)
+    {
+        return response()->json($data, $code);
+    }
+
+    protected function errorResponse($message, $code)
+    {
+        return response()->json(['error' => $message, 'code' => $code], $code);
+    }
+    protected function showAll(Collection $collection, $code = 200)
+    {
+        return $this->successResponse(['data' => $collection], $code);
+    }
+
+    protected function showOne(Model $model, $code = 200)
+    {
+        return $this->successResponse(['data' => $model], $code);
+    }
+}
+```
+in order to have the trait available inside each controller we can import it manually into each controller but its not so practical. instead we can import the trait into ApiController (remember we got all controllers extend ApiController)
+- now we simply say:
+```
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Traits\ApiResponser;
+use Illuminate\Http\Request;
+
+class ApiController extends Controller
+{
+    use ApiResponser;
+}
+```
+this way the ApiResponser trait is available in all controllers.
+
+As we remember, the response line repeated in all controller methods, so now we can use showAll() and showOne() methods from ApiResponser trait.
+
+For methods returning a collection we can use showAll() and for those returning a single instance we can use showOne().
+
+like this:
+
+##### showAll():
+```
+before:  
+
+return response()->json(['data' => $buyers], 200);
+
+after:
+
+return $this->showAll($buyers);
+```
+
+##### showOne():
+```
+before:
+
+return response()->json(['data' => $buyer], 200);
+
+after:
+
+return $this->showOne($buyer);
+```
+
+we have some error responses inside UserController that can be called using ApiResponser trait. like this:
+```
+before:
+
+ return response()->json(['error'=>'Only verified user can modify the admin field','code'=>409], 409);
+
+after:
+return $this->errorResponse('You need to specify a different value to update',422);   
