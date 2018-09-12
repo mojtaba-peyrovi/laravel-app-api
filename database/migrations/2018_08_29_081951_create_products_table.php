@@ -24,6 +24,7 @@ class CreateProductsTable extends Migration
             $table->string('image');
             $table->timestamps();
             $table->foreign('seller_id')->references('id')->on('users');
+            $table->softDeletes(); //deleted_at
         });
     }
 

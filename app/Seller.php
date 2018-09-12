@@ -7,6 +7,7 @@ use App\Scopes\SellerScope;
 
 class Seller extends User
 {
+
     protected static function boot()
     {
         parent::boot();
