@@ -116,3 +116,73 @@ protected $dates = ['deleted_at'];
 Now we repeat this for all models except Buyer and Seller because they are subsets of users.
 
 The soft delete functionality works now. Anytime we delete a record the deleted_at value will be saved in the database.
+
+### Part 18:
+---
+For some methods in category controller we can't use route-model binding in a natural way. we need to do a trick like this:
+
+First we delete the categoryCocntroller we had and Using the following artisan code we can make a new one:
+
+```
+ php artisan make:controller Category/CategoryController -r -m Category
+ ```
+ Writing artisan like this will use the Category model and inject it directly in all methods of the controller instead of id.
+
+ As in the routes we said we dont want create and edit for categories we delete their methods in the controller.
+
+Then we car write the index to show all categories but we need to change the header like this:
+```
+<?php
+
+namespace App\Http\Controllers\Category;
+
+use App\Category;
+use Illuminate\Http\Request;
+use App\Http\Controllers\ApiController;
+
+class CategoryController extends ApiController
+{
+
+}
+```
+
+Here is the index method:
+
+```
+public function index()
+    {
+        $categories = Category::all();
+        return $this->showAll($categories);
+    }    
+ ```
+ Now it shows all categories as expcted.
+ Other methods are easy justy check the source code.
+ For Updating there is a new method called __fill()__. it is so similar to update except that it does the validation itself and waits for save method and if the data doesn't exist it returns false but update will change data right away.
+
+__Intersect method:__  It removes items from the originall collection which don't exist in the passed collection. example: [here](https://laravel.com/docs/5.6/collections#method-intersect)
+
+Here is how we use it for update:
+```
+    public function update(Request $request, Category $category)
+    {
+        $category->fill($request->intersect([
+            'name',
+            'description'
+        ]));
+    }
+```
+
+Actually intersect() is deprecated and we need to replacew it will only() like this:
+```
+	$category->fill($request->only('name','description'));
+```
+It means that we make sure users only pass name and description and not anything else (anything except these 2 will be deleted by laravel)
+
+__isDirty()__ is a useful method saying if the values have been changed or not. for example in updating category we can say:
+
+```
+    if (!$category->isDirty()) {
+        return $this->errorResponse('You need to pass new data!', 422);
+    }
+```
+we could actually use __isClean()__ method which means not dirty.
