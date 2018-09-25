@@ -186,3 +186,11 @@ __isDirty()__ is a useful method saying if the values have been changed or not. 
     }
 ```
 we could actually use __isClean()__ method which means not dirty.
+
+### Part 19:
+---
+We have to make explicit route model binding again for Products as we did for Categories.
+```
+ php artisan make:controller Product/ProductsController -r -m Product`
+ ```
+Because according to rotues.php we just need index and show, we delete all other methods scaffolding code inside the productsController.
