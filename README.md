@@ -165,17 +165,23 @@ before:
  ##### showOne():
 ```
 before:
+```
  return response()->json(['data' => $buyer], 200);
+```
  after:
+```
  return $this->showOne($buyer);
 ```
  we have some error responses inside UserController that can be called using ApiResponser trait. like this:
 ```
 before:
+```
   return response()->json(['error'=>'Only verified user can modify the admin field','code'=>409], 409);
+```
  after:
+```
 return $this->errorResponse('You need to specify a different value to update',422);   
-
+```
 
 
 ## Part 15:
