@@ -417,3 +417,70 @@ again we make a new controller :
 ```
 php artisan make:controller Transaction/TransactionSellerController -r -m Transaction
 ```
+
+### Part 21:
+---
+Now we are going to make a controller that returns buyers in a transaction.
+First we make the controller:
+```
+php artisan make:controller Buyer/BuyerTransactionConroller -r -m Buyer
+````
+
+Next, we will add a route for it:
+```
+Route::resource('buyers.transactions', 'Buyer\BuyerTransactionController', ['only' => 'index']);
+```
+And now we can retrieve data from the index method in the new controller.
+Again simply like the previous episode we write index method and when we check the website like this:
+```
+laravel-app-api.test/buyers/234/transactions
+```
+It shows the transactions done by buyer with id of 234
+
+Now its time to find the products that a buyer buys. We can access them through transactions of the buyer as we made before, but the problem is because the relationship of buyer with Transaction is many to many, laravel returns a collection of transactions and not an instance of it. So we need to go through all trnasactions and see the products of each.
+
+But laravel has a way to deal with it.
+The process of making the route and controller is similar, except the index method has to be written this way:
+```
+public function index(Buyer $buyer)
+{
+    $products = $buyer->transactions()->with('product')->get()->pluck();
+    return $this->showAll($products)
+}
+```
+__Eager Loading__: the technique of returning the list of products from transactions, when we practically it finds all products for the whole collection of transactions using with() is called Eager loading.
+
+__Pluck()__ method will obtain only the products and not the whole collection. (very useful.)
+
+Now we want to acquire the sellers of a transaction. This is so interesting because we have to find it through all of the other models. from transaction to products to seller. Also the sellers can be repeating. We need to make sure it returns only unique sellers.
+
+Again we start from making the controller:
+```
+php artisan make:controller Buyer/BuyerSellerController -r -m Buyer
+```
+In order to write the index method it is so important that we doit this way:
+```
+public function index(Buyer $buyer)
+{
+    $sellers = $buyer->transactions()->with('product.seller')
+    ->get()
+    ->pluck('product.seller')
+    ->values();
+    return $this->showAll($sellers);
+}
+```
+the product.seller part is called __Nested relationship__ that means since there is no relationship between buyer and seller, we can find it through the product.
+
+Since we can't have duplicate in the results we use unique() method to return only unique id's.
+
+But unique() will remove the duplicate, we don't want this. It leaves some empty instances in sellers and when we add more transactions in the future it can return null for some sellers, in order to prevent this we use values() method;
+
+Finally we are going to retrieve categories of the bought products.
+Controller:
+```
+php artisan make:controller Buyer/BuyerSellerController -r -m Buyer
+```
+Beacause the relationship between product and category is many to many the result would be collection within collection if we want to make it the same way as we did for others.
+We can use a method called __collapse()__ that can show a list with all unique instances inside it.
+
+Also we still need to use unique and values methods.
