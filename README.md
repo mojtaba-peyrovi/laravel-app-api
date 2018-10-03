@@ -418,7 +418,7 @@ again we make a new controller :
 php artisan make:controller Transaction/TransactionSellerController -r -m Transaction
 ```
 
-### Part 21:
+### Part 22:
 ---
 Now we are going to make a controller that returns buyers in a transaction.
 First we make the controller:
@@ -484,3 +484,71 @@ Beacause the relationship between product and category is many to many the resul
 We can use a method called __collapse()__ that can show a list with all unique instances inside it.
 
 Also we still need to use unique and values methods.
+
+### Part 23:
+---
+Now we want to make a complex controller that returns the list of products for an specific category.
+first we make the controller:
+```
+Terminal: php artisan make:controller Category/CategoryProductController -r -m Category
+```
+Again the same way we did it several times for other nested relationships we follow the same steps to acquire the list of products of each category (Don't forget that there is a direct relationship between category and product)
+
+Again we want to have the list of sellers of a specific category.
+
+It is again All similar as before. we must use eager loading as we did before.
+
+Next we are going to find the list of transactions for each category.
+* this is an interesting case because in this case some of the categories may don't have any transactions. But before we knew for example a transaction has a seller or a buyer.
+
+So, we want to deal with the products that have already had at least one transaction.
+In order to make this work, all the steps are the same except the index method that we used a new method called __whereHas()__. It simply returns only the products that have at lest one transaction.
+here is the index method:
+```
+public function index(Category $category)
+{
+    $transactions = $category->products()
+    ->whereHas('transactions')
+    ->with('transactions')
+    ->get()
+    ->pluck('transactions')
+    ->collapse();
+
+    return $this->showAll($transactions);
+}
+```
+Next is time to find buyers list from the category. This is a bit more complex that others controllers.
+
+Let's see how it works.
+
+Again all steps are the same except the index method which is like this:
+```
+public function index(Category $category)
+{
+    $buyers = $category->products()
+    ->whereHas('transactions')
+    ->with('transactions.buyer')
+    ->get()
+    ->pluck('transactions')
+    ->collapse()
+    ->pluck('buyer')
+    ->unique('id')
+    ->values();
+
+    return $this->showAll($buyers);
+}
+```
+In order to be able to get the list of all buyers from transactions.buyers we need to convert the list of collections into one list using collapse(), then from collapsed list which will be a list of all trasactions we pluck again to find the unique buyers.
+The last thing here is, when we want to see the the list of products in a specific category, we see in the json list that there is something saying:
+```
+pivot: {
+    "category_id": 1,
+    "product_id": 15
+}
+```
+How to remove this from the json? Its so easy we just need to go to Category and Product model and add this:
+```
+protected $hidden = [
+    'pivot'
+];
+```
