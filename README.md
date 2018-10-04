@@ -552,3 +552,8 @@ protected $hidden = [
     'pivot'
 ];
 ```
+
+### Part 24:
+---
+In this part, we are going to do the same thig for seller. its similar to the previous parts.
+_Important_: When we want to have store method for sellerProductsController, we can't inject seller because if someone wants to store a product for the first time, he/she is not still a seller, so we need to inject user instead of seller.
